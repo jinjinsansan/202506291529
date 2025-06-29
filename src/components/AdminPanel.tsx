@@ -491,7 +491,10 @@ const AdminPanel: React.FC = () => {
           <h1 className="text-2xl font-jp-bold text-gray-900">管理画面</h1>
         </div>
 
-        <Tabs defaultValue="search" value={activeTab} onValueChange={(value) => setActiveTab(value)}>
+        <Tabs defaultValue="search" value={activeTab} onValueChange={(value) => {
+          setActiveTab(value);
+          console.log('タブが変更されました:', value);
+        }}>
           <TabsList className="grid grid-cols-7 gap-1 mb-6 overflow-x-auto">
             <TabsTrigger value="search" className="flex items-center justify-center px-2 py-1.5">
               <Search className="w-4 h-4" />
@@ -523,7 +526,7 @@ const AdminPanel: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="search">
+          <TabsContent value="search" forceMount={activeTab === "search"}>
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -663,7 +666,7 @@ const AdminPanel: React.FC = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="advanced-search">
+          <TabsContent value="advanced-search" forceMount={activeTab === "advanced-search"}>
             <AdvancedSearchFilter 
               entries={entries} 
               onFilteredResults={setFilteredEntries} 
@@ -672,29 +675,29 @@ const AdminPanel: React.FC = () => {
             />
           </TabsContent>
 
-          <TabsContent value="chat">
+          <TabsContent value="chat" forceMount={activeTab === "chat"}>
             <CounselorChat />
           </TabsContent>
 
-          <TabsContent value="counselors">
+          <TabsContent value="counselors" forceMount={activeTab === "counselors"}>
             <div className="grid grid-cols-1 gap-6">
               <CounselorManagement />
               <ConsentHistoryManagement />
             </div>
           </TabsContent>
 
-          <TabsContent value="maintenance">
+          <TabsContent value="maintenance" forceMount={activeTab === "maintenance"}>
             <div className="grid grid-cols-1 gap-6">
               <MaintenanceController />
               <DataCleanup />
             </div>
           </TabsContent>
 
-          <TabsContent value="device-auth">
+          <TabsContent value="device-auth" forceMount={activeTab === "device-auth"}>
             <DeviceAuthManagement />
           </TabsContent>
 
-          <TabsContent value="security">
+          <TabsContent value="security" forceMount={activeTab === "security"}>
             <SecurityDashboard />
           </TabsContent>
         </Tabs>
