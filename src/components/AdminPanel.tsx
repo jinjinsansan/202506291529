@@ -3,10 +3,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Calendar, Search, MessageCircle, Settings, Users, AlertTriangle, Edit3, Trash2, Save, X, CheckCircle, Eye, EyeOff, User, Clock, Filter, Shield, Database, RefreshCw, Download } from 'lucide-react';
 import AdvancedSearchFilter from './AdvancedSearchFilter';
 import { supabase } from '../lib/supabase';
-import React from 'react';
 
 // 遅延ロード用のコンポーネント
-const LazyComponent = ({ component: Component, ...props }) => {
+const LazyComponent = ({ component: Component, ...props }: { component: React.ComponentType<any>, [key: string]: any }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   
   useEffect(() => {
