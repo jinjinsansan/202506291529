@@ -2,14 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Calendar, Search, MessageCircle, Settings, Users, AlertTriangle, Edit3, Trash2, Save, X, CheckCircle, Eye, EyeOff, User, Clock, Filter, Shield, Database, RefreshCw, Download } from 'lucide-react';
 import AdvancedSearchFilter from './AdvancedSearchFilter';
-import CounselorManagement from './CounselorManagement';
-import CounselorChat from './CounselorChat';
-import MaintenanceController from './MaintenanceController';
-import ConsentHistoryManagement from './ConsentHistoryManagement';
-import DeviceAuthManagement from './DeviceAuthManagement';
-import SecurityDashboard from './SecurityDashboard';
-import DataCleanup from './DataCleanup';
 import { supabase } from '../lib/supabase';
+import React from 'react';
+
+// 遅延ロード用のコンポーネント
+const LazyComponent = ({ component: Component, ...props }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+  
+  if (!isLoaded) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600 font-jp-normal">コンポーネントを読み込み中...</p>
+      </div>
+    );
+  }
+  
+  return <Component {...props} />;
+};
+
+// 遅延ロード用のコンポーネント
+const CounselorManagement = React.lazy(() => import('./CounselorManagement'));
+const CounselorChat = React.lazy(() => import('./CounselorChat'));
+const MaintenanceController = React.lazy(() => import('./MaintenanceController'));
+const ConsentHistoryManagement = React.lazy(() => import('./ConsentHistoryManagement'));
+const DeviceAuthManagement = React.lazy(() => import('./DeviceAuthManagement'));
+const SecurityDashboard = React.lazy(() => import('./SecurityDashboard'));
+const DataCleanup = React.lazy(() => import('./DataCleanup'));
 
 interface JournalEntry {
   id: string;
@@ -42,32 +65,32 @@ const AdminPanel: React.FC = () => {
         </div>
 
         <Tabs defaultValue="search" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex flex-wrap mb-6 overflow-x-auto">
-            <TabsTrigger value="search">
+          <TabsList className="grid grid-cols-7 gap-1 mb-6 overflow-x-auto">
+            <TabsTrigger value="search" className="flex items-center justify-center px-2 py-1.5">
               <Search className="w-4 h-4" />
               <span className="hidden md:inline">日記</span>
             </TabsTrigger>
-            <TabsTrigger value="advanced-search">
+            <TabsTrigger value="advanced-search" className="flex items-center justify-center px-2 py-1.5">
               <Filter className="w-4 h-4" />
               <span className="hidden md:inline">検索</span>
             </TabsTrigger>
-            <TabsTrigger value="chat">
+            <TabsTrigger value="chat" className="flex items-center justify-center px-2 py-1.5">
               <MessageCircle className="w-4 h-4" />
               <span className="hidden md:inline">チャット</span>
             </TabsTrigger>
-            <TabsTrigger value="counselors">
+            <TabsTrigger value="counselors" className="flex items-center justify-center px-2 py-1.5">
               <Users className="w-4 h-4" />
               <span className="hidden md:inline">カウンセラー</span>
             </TabsTrigger>
-            <TabsTrigger value="maintenance">
+            <TabsTrigger value="maintenance" className="flex items-center justify-center px-2 py-1.5">
               <Settings className="w-4 h-4" />
               <span className="hidden md:inline">設定</span>
             </TabsTrigger>
-            <TabsTrigger value="device-auth">
+            <TabsTrigger value="device-auth" className="flex items-center justify-center px-2 py-1.5">
               <Shield className="w-4 h-4" />
               <span className="hidden md:inline">認証</span>
             </TabsTrigger>
-            <TabsTrigger value="security">
+            <TabsTrigger value="security" className="flex items-center justify-center px-2 py-1.5">
               <AlertTriangle className="w-4 h-4" />
               <span className="hidden md:inline">安全</span>
             </TabsTrigger>
@@ -223,29 +246,78 @@ const AdminPanel: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="chat">
-            <CounselorChat />
+            <React.Suspense fallback={
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 font-jp-normal">読み込み中...</p>
+              </div>
+            }>
+              <LazyComponent component={CounselorChat} />
+            </React.Suspense>
           </TabsContent>
 
           <TabsContent value="counselors">
             <div className="grid grid-cols-1 gap-6">
-              <CounselorManagement />
-              <ConsentHistoryManagement />
+              <React.Suspense fallback={
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 font-jp-normal">読み込み中...</p>
+                </div>
+              }>
+                <LazyComponent component={CounselorManagement} />
+              </React.Suspense>
+              <React.Suspense fallback={
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 font-jp-normal">読み込み中...</p>
+                </div>
+              }>
+                <LazyComponent component={ConsentHistoryManagement} />
+              </React.Suspense>
             </div>
           </TabsContent>
 
           <TabsContent value="maintenance">
             <div className="grid grid-cols-1 gap-6">
-              <MaintenanceController />
-              <DataCleanup />
+              <React.Suspense fallback={
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 font-jp-normal">読み込み中...</p>
+                </div>
+              }>
+                <LazyComponent component={MaintenanceController} />
+              </React.Suspense>
+              <React.Suspense fallback={
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600 font-jp-normal">読み込み中...</p>
+                </div>
+              }>
+                <LazyComponent component={DataCleanup} />
+              </React.Suspense>
             </div>
           </TabsContent>
 
           <TabsContent value="device-auth">
-            <DeviceAuthManagement />
+            <React.Suspense fallback={
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 font-jp-normal">読み込み中...</p>
+              </div>
+            }>
+              <LazyComponent component={DeviceAuthManagement} />
+            </React.Suspense>
           </TabsContent>
 
           <TabsContent value="security">
-            <SecurityDashboard />
+            <React.Suspense fallback={
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 font-jp-normal">読み込み中...</p>
+              </div>
+            }>
+              <LazyComponent component={SecurityDashboard} />
+            </React.Suspense>
           </TabsContent>
         </Tabs>
       </div>

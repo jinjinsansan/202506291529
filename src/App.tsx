@@ -3,7 +3,7 @@ import { Heart, BookOpen, Search, BarChart2, HelpCircle, MessageCircle, Settings
 import { useMaintenanceStatus } from './hooks/useMaintenanceStatus';
 import { useSupabase } from './hooks/useSupabase';
 import { useAutoSync } from './hooks/useAutoSync';
-import { getCurrentUser } from './lib/deviceAuth';
+import { getCurrentUser, isAuthenticated } from './lib/deviceAuth';
 
 // コンポーネントのインポート
 import MaintenanceMode from './components/MaintenanceMode';
@@ -41,6 +41,9 @@ function App() {
   const [showWelcomePage, setShowWelcomePage] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // 初期ロード状態
+  const [initialLoading, setInitialLoading] = useState(true);
+
   // カスタムフックの初期化
   const { isMaintenanceMode, config, isAdminBypass } = useMaintenanceStatus();
   const { isConnected, error: supabaseError, retryConnection } = useSupabase();
@@ -54,21 +57,28 @@ function App() {
   // 初期化
   useEffect(() => {
     // プライバシーポリシー同意状態の確認
-    const consentGiven = localStorage.getItem('privacyConsentGiven');
-    if (consentGiven !== 'true') {
-      setShowPrivacyConsent(true);
-    }
+    try {
+      const consentGiven = localStorage.getItem('privacyConsentGiven');
+      if (consentGiven !== 'true') {
+        setShowPrivacyConsent(true);
+      }
 
-    // ユーザー名の取得
-    const savedUsername = localStorage.getItem('line-username');
-    if (savedUsername) {
-      setLineUsername(savedUsername);
-    }
+      // ユーザー名の取得
+      const savedUsername = localStorage.getItem('line-username');
+      if (savedUsername) {
+        setLineUsername(savedUsername);
+      }
 
-    // 管理者状態の確認
-    const currentCounselor = localStorage.getItem('current_counselor');
-    if (currentCounselor) {
-      setIsAdmin(true);
+      // 管理者状態の確認
+      const currentCounselor = localStorage.getItem('current_counselor');
+      if (currentCounselor) {
+        setIsAdmin(true);
+      }
+    } catch (error) {
+      console.error('初期化エラー:', error);
+    } finally {
+      // 初期ロード完了
+      setInitialLoading(false);
     }
   }, []);
 
@@ -174,7 +184,16 @@ function App() {
   };
 
   // メンテナンスモードの場合
-  if (isMaintenanceMode && !isAdminBypass) {
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-amber-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-jp-normal">読み込み中...</p>
+        </div>
+      </div>
+    );
+  } else if (isMaintenanceMode && !isAdminBypass) {
     return <MaintenanceMode config={config} onRetry={retryConnection} />;
   }
 
@@ -487,7 +506,7 @@ function App() {
                 onClick={() => {
                   setActiveTab('admin');
                   setShowWelcomePage(false);
-                  setTimeout(() => toggleMenu(), 300);
+                  toggleMenu();
                 }}
                 className={`flex items-center px-3 py-2 w-full rounded-md text-base ${
                   activeTab === 'admin' ? 'bg-green-100 text-green-900' : 'text-green-700 hover:bg-amber-50'
@@ -502,7 +521,7 @@ function App() {
                 onClick={() => {
                   setActiveTab('backup');
                   setShowWelcomePage(false);
-                  toggleMenu();
+                  setTimeout(() => toggleMenu(), 100);
                 }}
                 className={`flex items-center px-3 py-2 w-full rounded-md text-base ${
                   activeTab === 'backup' ? 'bg-green-100 text-green-900' : 'text-green-700 hover:bg-amber-50'
