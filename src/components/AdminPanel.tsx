@@ -524,7 +524,7 @@ const AdminPanel: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="search">
+          <TabsContent value="search" className="space-y-6">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -677,31 +677,31 @@ const AdminPanel: React.FC = () => {
             <CounselorChat />
           </TabsContent>
 
-          <TabsContent value="counselors">
+          <TabsTrigger value="search" className="flex items-center justify-center px-2 py-1.5" onClick={(e) => e.preventDefault()}>
             <div className="grid grid-cols-1 gap-6">
               <CounselorManagement />
               <ConsentHistoryManagement />
-            </div>
+          <TabsTrigger value="advanced-search" className="flex items-center justify-center px-2 py-1.5" onClick={(e) => e.preventDefault()}>
           </TabsContent>
 
           <TabsContent value="maintenance">
-            <div className="grid grid-cols-1 gap-6">
+          <TabsTrigger value="chat" className="flex items-center justify-center px-2 py-1.5" onClick={(e) => e.preventDefault()}>
               <MaintenanceController />
               <DataCleanup />
             </div>
-          </TabsContent>
+          <TabsTrigger value="counselors" className="flex items-center justify-center px-2 py-1.5" onClick={(e) => e.preventDefault()}>
 
           <TabsContent value="device-auth">
             <DeviceAuthManagement />
-          </TabsContent>
+          <TabsTrigger value="maintenance" className="flex items-center justify-center px-2 py-1.5" onClick={(e) => e.preventDefault()}>
 
           <TabsContent value="security">
             <SecurityDashboard />
-          </TabsContent>
+          <TabsTrigger value="device-auth" className="flex items-center justify-center px-2 py-1.5" onClick={(e) => e.preventDefault()}>
         </Tabs>
       </div>
 
-      {/* 詳細モーダル */}
+          <TabsTrigger value="security" className="flex items-center justify-center px-2 py-1.5" onClick={(e) => e.preventDefault()}>
       {renderEntryDetailsModal()}
     </div>
   );
