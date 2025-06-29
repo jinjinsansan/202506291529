@@ -487,7 +487,7 @@ function App() {
                 onClick={() => {
                   setActiveTab('admin');
                   setShowWelcomePage(false);
-                  setTimeout(() => toggleMenu(), 100);
+                  setTimeout(() => toggleMenu(), 300);
                 }}
                 className={`flex items-center px-3 py-2 w-full rounded-md text-base ${
                   activeTab === 'admin' ? 'bg-green-100 text-green-900' : 'text-green-700 hover:bg-amber-50'
