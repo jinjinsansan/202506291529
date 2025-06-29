@@ -1,89 +1,52 @@
 // デバイス認証システム
-// このファイルはデバイス認証に関する機能を提供します
 
-// ストレージキー定義
+// ストレージキー
 export const STORAGE_KEYS = {
   DEVICE_FINGERPRINT: 'device_fingerprint',
   USER_CREDENTIALS: 'user_credentials',
-  SECURITY_QUESTIONS: 'security_questions',
   AUTH_SESSION: 'auth_session',
-  ACCOUNT_LOCKED: 'account_locked_',
+  SECURITY_QUESTIONS: 'security_questions',
   LOGIN_ATTEMPTS: 'login_attempts_',
+  ACCOUNT_LOCKED: 'account_locked_',
   SECURITY_EVENTS: 'security_events'
 };
-
-// エラータイプ定義
-export enum AuthErrorType {
-  INVALID_CREDENTIALS = 'invalid_credentials',
-  ACCOUNT_LOCKED = 'account_locked',
-  DEVICE_MISMATCH = 'device_mismatch',
-  VALIDATION_ERROR = 'validation_error',
-  UNKNOWN_ERROR = 'unknown_error'
-}
-
-// カスタムエラークラス
-export class AuthError extends Error {
-  type: AuthErrorType;
-
-  constructor(type: AuthErrorType, message: string) {
-    super(message);
-    this.type = type;
-    this.name = 'AuthError';
-  }
-}
 
 // 秘密の質問リスト
 export const SECURITY_QUESTIONS = [
   {
-    id: 'first_pet',
+    id: 'first-pet',
     question: '最初に飼ったペットの名前は？',
     placeholder: '例: ポチ'
   },
   {
-    id: 'childhood_friend',
-    question: '子供の頃の親友の名前は？',
-    placeholder: '例: 田中太郎'
+    id: 'elementary-school',
+    question: '通っていた小学校の名前は？',
+    placeholder: '例: 〇〇小学校'
   },
   {
-    id: 'favorite_place',
-    question: '子供の頃の好きな場所は？',
-    placeholder: '例: 祖父の家'
+    id: 'birth-city',
+    question: '生まれた市区町村は？',
+    placeholder: '例: 〇〇市'
   },
   {
-    id: 'first_school',
-    question: '通った最初の学校の名前は？',
-    placeholder: '例: ○○小学校'
+    id: 'favorite-food',
+    question: '子供の頃の好きな食べ物は？',
+    placeholder: '例: カレーライス'
   },
   {
-    id: 'mother_maiden',
-    question: '母親の旧姓は？',
-    placeholder: '例: 佐藤'
-  },
-  {
-    id: 'favorite_teacher',
-    question: '一番好きだった先生の名前は？',
-    placeholder: '例: 山田先生'
-  },
-  {
-    id: 'first_job',
-    question: '初めてのアルバイトは？',
-    placeholder: '例: コンビニ店員'
-  },
-  {
-    id: 'childhood_hero',
-    question: '子供の頃の憧れのヒーローは？',
-    placeholder: '例: ウルトラマン'
+    id: 'first-teacher',
+    question: '小学校の担任の先生の名字は？',
+    placeholder: '例: 田中先生'
   }
 ];
 
-// インターフェース定義
+// 型定義
 export interface DeviceFingerprint {
   id: string;
   userAgent: string;
-  language: string;
   screen: string;
+  language: string;
   timezone: string;
-  platform: string;
   createdAt: string;
 }
 
@@ -95,12 +58,6 @@ export interface UserCredentials {
   createdAt: string;
 }
 
-export interface SecurityQuestion {
-  id: string;
-  question: string;
-  answer: string;
-}
-
 export interface AuthSession {
   lineUsername: string;
   deviceId: string;
@@ -108,33 +65,49 @@ export interface AuthSession {
   expiresAt: string;
 }
 
-export interface SecurityEvent {
+export interface SecurityQuestion {
   id: string;
-  type: string;
-  username: string;
-  timestamp: string;
-  details: string;
+  question: string;
+  answer: string;
 }
 
-// デバイスフィンガープリント生成
+// エラー型
+export enum AuthErrorType {
+  INVALID_CREDENTIALS = 'invalid_credentials',
+  DEVICE_MISMATCH = 'device_mismatch',
+  ACCOUNT_LOCKED = 'account_locked',
+  INVALID_PIN = 'invalid_pin',
+  UNKNOWN = 'unknown'
+}
+
+export class AuthError extends Error {
+  type: AuthErrorType;
+  
+  constructor(type: AuthErrorType, message: string) {
+    super(message);
+    this.type = type;
+    this.name = 'AuthError';
+  }
+}
+
+// デバイスフィンガープリントの生成
 export const generateDeviceFingerprint = (): DeviceFingerprint => {
   const userAgent = navigator.userAgent;
-  const language = navigator.language;
   const screen = `${window.screen.width}x${window.screen.height}`;
+  const language = navigator.language;
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const platform = navigator.platform;
   
-  // 一意のデバイスIDを生成
-  const components = [userAgent, language, screen, timezone, platform];
-  const deviceId = btoa(components.join('|')).substring(0, 32);
+  // 一意のIDを生成
+  const components = [userAgent, screen, language, timezone, Date.now().toString()];
+  const idString = components.join('|');
+  const id = btoa(idString).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
   
   return {
-    id: deviceId,
+    id,
     userAgent,
-    language,
     screen,
+    language,
     timezone,
-    platform,
     createdAt: new Date().toISOString()
   };
 };
@@ -146,30 +119,46 @@ export const saveDeviceFingerprint = (fingerprint: DeviceFingerprint): void => {
 
 // デバイスフィンガープリントの取得
 export const getDeviceFingerprint = (): DeviceFingerprint | null => {
-  const stored = localStorage.getItem(STORAGE_KEYS.DEVICE_FINGERPRINT);
-  return stored ? JSON.parse(stored) : null;
+  const savedFingerprint = localStorage.getItem(STORAGE_KEYS.DEVICE_FINGERPRINT);
+  if (!savedFingerprint) return null;
+  
+  try {
+    return JSON.parse(savedFingerprint);
+  } catch (error) {
+    console.error('デバイスフィンガープリント解析エラー:', error);
+    return null;
+  }
 };
 
 // デバイスフィンガープリントの比較
-export const compareDeviceFingerprints = (current: DeviceFingerprint, stored: DeviceFingerprint): boolean => {
-  // 主要な特性が一致するか確認
-  return current.id === stored.id &&
-         current.screen === stored.screen &&
-         current.platform === stored.platform;
+export const compareDeviceFingerprints = (current: DeviceFingerprint, saved: DeviceFingerprint): boolean => {
+  // 基本的な比較（IDが一致するか）
+  if (current.id === saved.id) return true;
+  
+  // 詳細な比較（画面サイズと言語が一致するか）
+  if (current.screen === saved.screen && current.language === saved.language) return true;
+  
+  return false;
 };
 
 // PIN番号のハッシュ化
 export const hashPinCode = async (pinCode: string, salt?: string): Promise<string> => {
-  const encoder = new TextEncoder();
-  const saltValue = salt || Math.random().toString(36).substring(2, 15);
+  // ソルトの生成または使用
+  const useSalt = salt || Math.random().toString(36).substring(2, 15);
   
-  // PIN番号とソルトを結合してハッシュ化
-  const data = encoder.encode(pinCode + saltValue);
+  // PIN番号とソルトを結合
+  const pinWithSalt = pinCode + useSalt;
+  
+  // SHA-256ハッシュの生成
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pinWithSalt);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  
+  // ハッシュをBase64に変換
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   
-  return salt ? hashHex : `${hashHex}:${saltValue}`;
+  return { hash: hashHex, salt: useSalt };
 };
 
 // ユーザー認証情報の保存
@@ -178,10 +167,10 @@ export const saveUserCredentials = async (
   pinCode: string,
   deviceId: string
 ): Promise<void> => {
-  // PIN番号をハッシュ化
-  const hashAndSalt = await hashPinCode(pinCode);
-  const [pinCodeHash, salt] = hashAndSalt.split(':');
+  // PIN番号のハッシュ化
+  const { hash: pinCodeHash, salt } = await hashPinCode(pinCode);
   
+  // 認証情報の作成
   const credentials: UserCredentials = {
     lineUsername,
     pinCodeHash,
@@ -190,93 +179,69 @@ export const saveUserCredentials = async (
     createdAt: new Date().toISOString()
   };
   
+  // ローカルストレージに保存
   localStorage.setItem(STORAGE_KEYS.USER_CREDENTIALS, JSON.stringify(credentials));
 };
 
 // ユーザー認証情報の取得
 export const getUserCredentials = (): UserCredentials | null => {
-  const stored = localStorage.getItem(STORAGE_KEYS.USER_CREDENTIALS);
-  return stored ? JSON.parse(stored) : null;
-};
-
-// 秘密の質問の保存
-export const saveSecurityQuestions = (questions: SecurityQuestion[]): void => {
-  // 回答を暗号化（Base64エンコード）
-  try {
-    const encodedQuestions = questions.map(q => ({
-      ...q,
-      answer: btoa(q.answer.toLowerCase().trim())
-    }));
-    
-    localStorage.setItem(STORAGE_KEYS.SECURITY_QUESTIONS, JSON.stringify(encodedQuestions));
-  } catch (error) {
-    console.error('秘密の質問保存エラー:', error);
-    // エラーが発生しても処理を続行できるよう、基本情報だけでも保存
-    try {
-      const basicQuestions = questions.map(q => ({
-        id: q.id,
-        question: q.question,
-        answer: 'encrypted_failed' // エラー時のフォールバック
-      }));
-      localStorage.setItem(STORAGE_KEYS.SECURITY_QUESTIONS, JSON.stringify(basicQuestions));
-    } catch (fallbackError) {
-      console.error('秘密の質問フォールバック保存エラー:', fallbackError);
-    }
-  }
-};
+  const savedCredentials = localStorage.getItem(STORAGE_KEYS.USER_CREDENTIALS);
+  if (!savedCredentials) return null;
   
-
-// 秘密の質問の取得
-export const getSecurityQuestions = (): SecurityQuestion[] => {
   try {
-    const stored = localStorage.getItem(STORAGE_KEYS.SECURITY_QUESTIONS);
-    return stored ? JSON.parse(stored) : [];
+    return JSON.parse(savedCredentials);
   } catch (error) {
-    console.error('秘密の質問取得エラー:', error);
-    return [];
+    console.error('ユーザー認証情報解析エラー:', error);
+    return null;
   }
 };
 
 // 認証セッションの作成
-export const createAuthSession = (data: {
+export const createAuthSession = (params: {
   lineUsername: string;
   pinCode: string;
   deviceId: string;
 }): void => {
-  const now = new Date();
-  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30日間有効
+  // セッションの有効期限（7日間）
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7);
   
+  // セッションの作成
   const session: AuthSession = {
-    lineUsername: data.lineUsername,
-    deviceId: data.deviceId,
-    lastActivity: now.toISOString(),
+    lineUsername: params.lineUsername,
+    deviceId: params.deviceId,
+    lastActivity: new Date().toISOString(),
     expiresAt: expiresAt.toISOString()
   };
   
+  // ローカルストレージに保存
   localStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(session));
-  
-  // セキュリティイベントをログ
-  logSecurityEvent('login_success', data.lineUsername, 'デバイス認証によるログイン成功');
 };
 
 // 認証セッションの取得
 export const getAuthSession = (): AuthSession | null => {
-  const stored = localStorage.getItem(STORAGE_KEYS.AUTH_SESSION);
-  if (!stored) return null;
+  const savedSession = localStorage.getItem(STORAGE_KEYS.AUTH_SESSION);
+  if (!savedSession) return null;
   
-  const session: AuthSession = JSON.parse(stored);
-  
-  // セッションの有効期限をチェック
-  if (new Date(session.expiresAt) < new Date()) {
-    clearAuthSession();
+  try {
+    const session = JSON.parse(savedSession);
+    
+    // セッションの有効期限をチェック
+    if (new Date(session.expiresAt) < new Date()) {
+      // 期限切れの場合はセッションを削除
+      localStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+      return null;
+    }
+    
+    // 最終アクティビティを更新
+    session.lastActivity = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(session));
+    
+    return session;
+  } catch (error) {
+    console.error('認証セッション解析エラー:', error);
     return null;
   }
-  
-  // 最終アクティビティを更新
-  session.lastActivity = new Date().toISOString();
-  localStorage.setItem(STORAGE_KEYS.AUTH_SESSION, JSON.stringify(session));
-  
-  return session;
 };
 
 // 認証セッションのクリア
@@ -284,99 +249,92 @@ export const clearAuthSession = (): void => {
   localStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
 };
 
+// ユーザーのログアウト
+export const logoutUser = (): void => {
+  clearAuthSession();
+};
+
 // 認証状態のチェック
 export const isAuthenticated = (): boolean => {
   return getAuthSession() !== null;
 };
 
-// 現在のユーザーを取得
-export const getCurrentUser = (): { lineUsername: string; deviceId: string } | null => {
+// 現在のユーザーの取得
+export const getCurrentUser = (): { lineUsername: string } | null => {
   const session = getAuthSession();
   if (!session) return null;
   
-  return {
-    lineUsername: session.lineUsername,
-    deviceId: session.deviceId
-  };
+  return { lineUsername: session.lineUsername };
 };
 
-// ログアウト
-export const logoutUser = (): void => {
-  const user = getCurrentUser();
-  if (user) {
-    logSecurityEvent('logout', user.lineUsername, 'ユーザーがログアウトしました');
-  }
+// 秘密の質問の保存
+export const saveSecurityQuestions = (questions: SecurityQuestion[]): void => {
+  // 回答を暗号化（簡易的な実装としてBase64エンコード）
+  const encodedQuestions = questions.map(q => ({
+    ...q,
+    answer: btoa(q.answer.toLowerCase().trim())
+  }));
   
-  clearAuthSession();
+  localStorage.setItem(STORAGE_KEYS.SECURITY_QUESTIONS, JSON.stringify(encodedQuestions));
+};
+
+// 秘密の質問の取得
+export const getSecurityQuestions = (): SecurityQuestion[] => {
+  const savedQuestions = localStorage.getItem(STORAGE_KEYS.SECURITY_QUESTIONS);
+  if (!savedQuestions) return [];
+  
+  try {
+    return JSON.parse(savedQuestions);
+  } catch (error) {
+    console.error('秘密の質問解析エラー:', error);
+    return [];
+  }
 };
 
 // ログイン試行回数の取得
 export const getLoginAttempts = (username: string): number => {
-  const key = `${STORAGE_KEYS.LOGIN_ATTEMPTS}${username}`;
-  const attempts = localStorage.getItem(key);
+  const attempts = localStorage.getItem(`${STORAGE_KEYS.LOGIN_ATTEMPTS}${username}`);
   return attempts ? parseInt(attempts) : 0;
 };
 
 // ログイン試行回数の増加
 export const incrementLoginAttempts = (username: string): number => {
-  const key = `${STORAGE_KEYS.LOGIN_ATTEMPTS}${username}`;
   const attempts = getLoginAttempts(username) + 1;
-  localStorage.setItem(key, attempts.toString());
-  
-  // 最大試行回数に達した場合はアカウントをロック
-  if (attempts >= 5) {
-    lockAccount(username);
-  }
-  
+  localStorage.setItem(`${STORAGE_KEYS.LOGIN_ATTEMPTS}${username}`, attempts.toString());
   return attempts;
 };
 
 // ログイン試行回数のリセット
 export const resetLoginAttempts = (username: string): void => {
-  const key = `${STORAGE_KEYS.LOGIN_ATTEMPTS}${username}`;
-  localStorage.removeItem(key);
+  localStorage.removeItem(`${STORAGE_KEYS.LOGIN_ATTEMPTS}${username}`);
+};
+
+// アカウントのロック状態のチェック
+export const isAccountLocked = (username: string): boolean => {
+  const lockedUntil = localStorage.getItem(`${STORAGE_KEYS.ACCOUNT_LOCKED}${username}`);
+  if (!lockedUntil) return false;
+  
+  // ロック期限をチェック
+  const lockExpiry = new Date(lockedUntil);
+  return lockExpiry > new Date();
 };
 
 // アカウントのロック
 export const lockAccount = (username: string): void => {
-  const key = `${STORAGE_KEYS.ACCOUNT_LOCKED}${username}`;
+  // 24時間のロック
   const lockExpiry = new Date();
-  lockExpiry.setHours(lockExpiry.getHours() + 24); // 24時間ロック
+  lockExpiry.setHours(lockExpiry.getHours() + 24);
   
-  localStorage.setItem(key, lockExpiry.toISOString());
-  logSecurityEvent('account_locked', username, 'アカウントがロックされました（24時間）');
+  localStorage.setItem(`${STORAGE_KEYS.ACCOUNT_LOCKED}${username}`, lockExpiry.toISOString());
 };
 
-// アカウントのロック状態チェック
-export const isAccountLocked = (username: string): boolean => {
-  const key = `${STORAGE_KEYS.ACCOUNT_LOCKED}${username}`;
-  const lockExpiry = localStorage.getItem(key);
-  
-  if (!lockExpiry) return false;
-  
-  // ロック期限が切れているかチェック
-  const expiryDate = new Date(lockExpiry);
-  const now = new Date();
-  
-  if (now > expiryDate) {
-    // ロック期限切れ
-    localStorage.removeItem(key);
-    return false;
-  }
-  
-  return true;
-};
-
-// セキュリティイベントのログ記録
+// セキュリティイベントのログ
 export const logSecurityEvent = (
   type: string,
   username: string,
   details: string
 ): void => {
-  const events = localStorage.getItem(STORAGE_KEYS.SECURITY_EVENTS);
-  const securityEvents: SecurityEvent[] = events ? JSON.parse(events) : [];
-  
-  const newEvent: SecurityEvent = {
+  const event = {
     id: Date.now().toString(),
     type,
     username,
@@ -384,12 +342,17 @@ export const logSecurityEvent = (
     details
   };
   
-  securityEvents.push(newEvent);
+  // 既存のイベントを取得
+  const savedEvents = localStorage.getItem(STORAGE_KEYS.SECURITY_EVENTS);
+  const events = savedEvents ? JSON.parse(savedEvents) : [];
   
-  // 最大1000件まで保存
-  if (securityEvents.length > 1000) {
-    securityEvents.shift();
+  // 新しいイベントを追加
+  events.push(event);
+  
+  // 最大100件まで保存
+  if (events.length > 100) {
+    events.shift();
   }
   
-  localStorage.setItem(STORAGE_KEYS.SECURITY_EVENTS, JSON.stringify(securityEvents));
+  localStorage.setItem(STORAGE_KEYS.SECURITY_EVENTS, JSON.stringify(events));
 };
