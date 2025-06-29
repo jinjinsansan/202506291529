@@ -42,7 +42,7 @@ const AdminPanel: React.FC = () => {
   const [urgencyLevel, setUrgencyLevel] = useState<'high' | 'medium' | 'low' | ''>('');
   const [assignedCounselor, setAssignedCounselor] = useState('');
   const [savingMemo, setSavingMemo] = useState(false);
-  const [activeTab, setActiveTab] = useState('search');
+  const [activeTab, setActiveTab] = useState<string>('search');
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -663,7 +663,7 @@ const AdminPanel: React.FC = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="advanced-search">
+          <TabsContent value="advanced-search" className="space-y-6">
             <AdvancedSearchFilter 
               entries={entries} 
               onFilteredResults={setFilteredEntries} 
@@ -672,29 +672,29 @@ const AdminPanel: React.FC = () => {
             />
           </TabsContent>
 
-          <TabsContent value="chat">
+          <TabsContent value="chat" className="space-y-6">
             <CounselorChat />
           </TabsContent>
 
-          <TabsContent value="counselors">
+          <TabsContent value="counselors" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
               <CounselorManagement />
               <ConsentHistoryManagement />
             </div>
           </TabsContent>
 
-          <TabsContent value="maintenance">
+          <TabsContent value="maintenance" className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
               <MaintenanceController />
               <DataCleanup />
             </div>
           </TabsContent>
 
-          <TabsContent value="device-auth">
+          <TabsContent value="device-auth" className="space-y-6">
             <DeviceAuthManagement />
           </TabsContent>
 
-          <TabsContent value="security">
+          <TabsContent value="security" className="space-y-6">
             <SecurityDashboard />
           </TabsContent>
         </Tabs>
