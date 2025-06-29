@@ -42,7 +42,7 @@ const AdminPanel: React.FC = () => {
   const [urgencyLevel, setUrgencyLevel] = useState<'high' | 'medium' | 'low' | ''>('');
   const [assignedCounselor, setAssignedCounselor] = useState('');
   const [savingMemo, setSavingMemo] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('search');
+  const [activeTab, setActiveTab] = useState('search');
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -491,7 +491,7 @@ const AdminPanel: React.FC = () => {
           <h1 className="text-2xl font-jp-bold text-gray-900">管理画面</h1>
         </div>
 
-        <Tabs defaultValue="search" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="search" value={activeTab} onValueChange={(value) => setActiveTab(value)}>
           <TabsList className="grid grid-cols-7 gap-1 mb-6 overflow-x-auto">
             <TabsTrigger value="search" className="flex items-center justify-center px-2 py-1.5">
               <Search className="w-4 h-4" />
@@ -523,7 +523,7 @@ const AdminPanel: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="search" className="space-y-6">
+          <TabsContent value="search">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -663,7 +663,7 @@ const AdminPanel: React.FC = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="advanced-search" className="space-y-6">
+          <TabsContent value="advanced-search">
             <AdvancedSearchFilter 
               entries={entries} 
               onFilteredResults={setFilteredEntries} 
@@ -672,29 +672,29 @@ const AdminPanel: React.FC = () => {
             />
           </TabsContent>
 
-          <TabsContent value="chat" className="space-y-6">
+          <TabsContent value="chat">
             <CounselorChat />
           </TabsContent>
 
-          <TabsContent value="counselors" className="space-y-6">
+          <TabsContent value="counselors">
             <div className="grid grid-cols-1 gap-6">
               <CounselorManagement />
               <ConsentHistoryManagement />
             </div>
           </TabsContent>
 
-          <TabsContent value="maintenance" className="space-y-6">
+          <TabsContent value="maintenance">
             <div className="grid grid-cols-1 gap-6">
               <MaintenanceController />
               <DataCleanup />
             </div>
           </TabsContent>
 
-          <TabsContent value="device-auth" className="space-y-6">
+          <TabsContent value="device-auth">
             <DeviceAuthManagement />
           </TabsContent>
 
-          <TabsContent value="security" className="space-y-6">
+          <TabsContent value="security">
             <SecurityDashboard />
           </TabsContent>
         </Tabs>
