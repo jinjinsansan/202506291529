@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Calendar, Search, MessageCircle, Settings, Users, AlertTriangle, Edit3, Trash2, Save, X, CheckCircle, Eye, EyeOff, User, Clock, Filter, Shield, Database, RefreshCw, Download } from 'lucide-react';
+import { Calendar, Search, MessageCircle, Settings, Users, AlertTriangle, Edit3, Save, X, CheckCircle, Eye, EyeOff, User, Clock, Filter, Shield, Database, RefreshCw, Download } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import AdvancedSearchFilter from './AdvancedSearchFilter';
 import CounselorManagement from './CounselorManagement';
 import CounselorChat from './CounselorChat';
@@ -491,10 +492,7 @@ const AdminPanel: React.FC = () => {
           <h1 className="text-2xl font-jp-bold text-gray-900">管理画面</h1>
         </div>
 
-        <Tabs defaultValue="search" value={activeTab} onValueChange={(value) => {
-          setActiveTab(value);
-          console.log('タブが変更されました:', value);
-        }}>
+        <Tabs defaultValue="search" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-7 gap-1 mb-6 overflow-x-auto">
             <TabsTrigger value="search" className="flex items-center justify-center px-2 py-1.5">
               <Search className="w-4 h-4" />
@@ -526,7 +524,7 @@ const AdminPanel: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="search" forceMount={activeTab === "search"}>
+          <TabsContent value="search">
             {loading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -666,7 +664,7 @@ const AdminPanel: React.FC = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="advanced-search" forceMount={activeTab === "advanced-search"}>
+          <TabsContent value="advanced-search">
             <AdvancedSearchFilter 
               entries={entries} 
               onFilteredResults={setFilteredEntries} 
@@ -675,29 +673,29 @@ const AdminPanel: React.FC = () => {
             />
           </TabsContent>
 
-          <TabsContent value="chat" forceMount={activeTab === "chat"}>
+          <TabsContent value="chat">
             <CounselorChat />
           </TabsContent>
 
-          <TabsContent value="counselors" forceMount={activeTab === "counselors"}>
+          <TabsContent value="counselors">
             <div className="grid grid-cols-1 gap-6">
               <CounselorManagement />
               <ConsentHistoryManagement />
             </div>
           </TabsContent>
 
-          <TabsContent value="maintenance" forceMount={activeTab === "maintenance"}>
+          <TabsContent value="maintenance">
             <div className="grid grid-cols-1 gap-6">
               <MaintenanceController />
               <DataCleanup />
             </div>
           </TabsContent>
 
-          <TabsContent value="device-auth" forceMount={activeTab === "device-auth"}>
+          <TabsContent value="device-auth">
             <DeviceAuthManagement />
           </TabsContent>
 
-          <TabsContent value="security" forceMount={activeTab === "security"}>
+          <TabsContent value="security">
             <SecurityDashboard />
           </TabsContent>
         </Tabs>
